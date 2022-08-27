@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 import { NeuralNetwork } from 'brain.js';
 
 // provide optional config object (or undefined). Defaults shown.
@@ -17,19 +18,38 @@ export const playAi = (currentState, aiEnabled, callback) => {
   } else {
     let randomSlot = randomAction(currentState);
     console.log(randomSlot);
-    callback(randomSlot[0], randomSlot[1]);
+    callback(randomSlot);
   }
 };
 
 const randomAction = (currentState) => {
   let availableIndexes = [];
 
-  for (let i = 0; i < 3; i++) {
-    for (let j = 0; j < 3; j++) {
-      if (currentState[i][j] === '') availableIndexes.push([i, j]);
-    }
-  }
+  currentState.forEach((state, i) => {
+    if (state === '') availableIndexes.push(i);
+  });
 
   let randomSlot = Math.floor(Math.random() * availableIndexes.length);
-  return [availableIndexes[randomSlot][0], availableIndexes[randomSlot][1]];
+  return [availableIndexes[randomSlot]];
+};
+
+export const checkWinner = (board) => {
+  let combos = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [6, 4, 2],
+  ];
+
+  // iterate though the combos and de-structure the set of 3 indices
+  for (let [a, b, c] of combos) {
+    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+      return board[a]; // 'X' | 'O'
+    }
+  }
+  return ''; // no winner
 };
