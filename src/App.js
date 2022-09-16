@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import './App.css';
+import "./App.css";
 import {
   Box,
   Button,
@@ -10,58 +10,61 @@ import {
   Tab,
   Tabs,
   Text,
-} from 'grommet';
-import { useEffect, useState } from 'react';
-import { playAi, checkWinner } from './logic';
+} from "grommet";
+import Lottie from "lottie-react";
+import RobotAnimation from "./robot.json";
+import { useEffect, useState } from "react";
+import { playAi, checkWinner, trainNetwork } from "./logic";
 
 const theme = {
   global: {
     focus: {
       outline: {
-        size: '0px',
+        size: "0px",
       },
     },
   },
   tab: {
-    color: 'gray',
+    color: "gray",
     border: {
-      color: 'gray',
+      color: "gray",
       active: {
-        color: 'brand',
+        color: "brand",
       },
     },
     active: {
-      color: 'brand',
+      color: "brand",
     },
   },
 };
 
 function App() {
   const [currentState, setCurrentState] = useState([
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
-    '',
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
   ]);
 
-  const signs = ['X', 'O'];
-  const [currentPlayer, setCurrentPlayer] = useState('');
-  const [playerSign, setPlayerSign] = useState('X');
+  const signs = ["X", "O"];
+  const [currentPlayer, setCurrentPlayer] = useState("");
+  const [playerSign, setPlayerSign] = useState("X");
   const [aiEnabled, setAiEnabled] = useState(null);
   const [gameStarted, setGameStarted] = useState(false);
   const [trainSet, setTrainSet] = useState(100);
-  const [personWon, setPersonWon] = useState('');
+  const [personWon, setPersonWon] = useState("");
+  const [networkTraining, setNetworkTraining] = useState(false);
 
   useEffect(() => {
     let winner = checkWinner(currentState);
-    if (winner === '') {
+    if (winner === "") {
       if (checkIfAllFilled()) {
-        setPersonWon('D');
+        setPersonWon("D");
       } else {
         if (currentPlayer !== playerSign) {
           setTimeout(
@@ -74,17 +77,29 @@ function App() {
       }
     } else {
       if (playerSign === winner) {
-        setPersonWon('P');
+        setPersonWon("P");
       } else {
-        setPersonWon('B');
+        setPersonWon("B");
       }
     }
   }, [currentPlayer]);
 
   const startGame = (starterPlayer) => {
+    if (aiEnabled) {
+      setNetworkTraining(true);
+      setTimeout(() => {
+        trainNetwork(trainSet, starterPlayer, runGame);
+      }, 500);
+    } else {
+      runGame(starterPlayer);
+    }
+  };
+
+  const runGame = (starterPlayer) => {
+    setNetworkTraining(false);
     setCurrentPlayer(starterPlayer);
-    setCurrentState(['', '', '', '', '', '', '', '', '']);
-    setPersonWon('');
+    setCurrentState(["", "", "", "", "", "", "", "", ""]);
+    setPersonWon("");
     setGameStarted(true);
   };
 
@@ -110,25 +125,25 @@ function App() {
   };
 
   const play = (id) => {
-    if (currentState[id] !== '') return;
+    if (currentState[id] !== "") return;
     if (currentPlayer !== playerSign) return;
-    if (!gameStarted || personWon !== '') return;
+    if (!gameStarted || personWon !== "") return;
 
     fillCell(id);
   };
 
   const checkIfAllFilled = () => {
     for (let i = 0; i < currentState.length; i++) {
-      if (currentState[i] === '') return false;
+      if (currentState[i] === "") return false;
     }
     return true;
   };
 
   const playBot = () => {
     if (currentPlayer === playerSign) return;
-    if (!gameStarted || personWon !== '') return;
+    if (!gameStarted || personWon !== "") return;
 
-    playAi(currentState, aiEnabled, fillCell);
+    playAi(currentState, playerSign, aiEnabled, fillCell);
   };
 
   const renderCell = (id) => {
@@ -149,9 +164,9 @@ function App() {
 
   const getLabelByPersonWon = () => {
     const labels = {
-      B: 'Game Over! The bot won',
-      D: 'Draw! No one win',
-      P: 'Congrats! you won',
+      B: "Game Over! The bot won",
+      D: "Draw! No one win",
+      P: "Congrats! you won",
     };
 
     return labels[personWon];
@@ -162,22 +177,22 @@ function App() {
       <header className="App-header">
         {gameStarted && (
           <>
-            {personWon === '' && (
+            {personWon === "" && (
               <Text style={styles.turnIndicator}>
-                {playerSign === currentPlayer ? 'Your turn' : 'Ai Turn'}
+                {playerSign === currentPlayer ? "Your turn" : "Ai Turn"}
               </Text>
             )}
 
-            {personWon !== '' && (
+            {personWon !== "" && (
               <Text
-                color={personWon === 'P' ? '#fbc531' : 'gray'}
+                color={personWon === "P" ? "#fbc531" : "gray"}
                 style={styles.turnIndicator}
               >
                 {getLabelByPersonWon()}
               </Text>
             )}
 
-            {personWon !== '' && (
+            {personWon !== "" && (
               <Button
                 onClick={() => {
                   setGameStarted(false);
@@ -206,31 +221,38 @@ function App() {
               </Box>
             </Box>
             <Text
-              color={aiEnabled ? '#fbc531' : 'light-3'}
+              color={aiEnabled ? "#fbc531" : "light-3"}
               style={styles.aiIndicator}
             >
               {aiEnabled
-                ? 'Neural Network Integrated'
-                : 'Random actions (NO AI)'}
+                ? "Neural Network Integrated"
+                : "Random actions (NO AI)"}
             </Text>
 
-            {personWon === '' && (
+            {personWon === "" && (
               <Box
                 direction="row"
                 style={{
                   visibility:
-                    currentPlayer === playerSign ? 'hidden' : 'visible',
+                    currentPlayer === playerSign ? "hidden" : "visible",
                   marginTop: 8,
                 }}
               >
                 <Text style={styles.thinking}>Thinking..</Text>
-                <Spinner color={'#fbc531'} />
+                <Spinner color={"#fbc531"} />
               </Box>
             )}
           </>
         )}
 
-        {!gameStarted && (
+        {networkTraining && (
+          <Box style={styles.trainingContainer}>
+            <Lottie style={styles.robotIcon} animationData={RobotAnimation} />
+            <Text style={styles.trainSet}>Please Wait! I am learning {trainSet} sets</Text>
+          </Box>
+        )}
+
+        {!gameStarted && !networkTraining && (
           <>
             <Text style={styles.startGame}>Configure a new game</Text>
             <Box style={{ padding: 16 }} background="white">
@@ -238,7 +260,7 @@ function App() {
                 <Tab
                   color="red"
                   style={{
-                    color: 'red',
+                    color: "red",
                   }}
                   onClick={() => {
                     setAiEnabled(false);
@@ -247,7 +269,7 @@ function App() {
                 >
                   <Text style={styles.aiIndicator}>Play with ?</Text>
                   <RadioButtonGroup
-                    options={['X', 'O']}
+                    options={["X", "O"]}
                     value={playerSign}
                     onChange={(event) => {
                       setPlayerSign(event.target.value);
@@ -272,7 +294,7 @@ function App() {
                 >
                   <Text style={styles.aiIndicator}>Play with ?</Text>
                   <RadioButtonGroup
-                    options={['X', 'O']}
+                    options={["X", "O"]}
                     value={playerSign}
                     onChange={(event) => {
                       setPlayerSign(event.target.value);
@@ -284,7 +306,7 @@ function App() {
                   <RangeInput
                     value={trainSet}
                     min={100}
-                    max={1000000}
+                    max={10000}
                     onChange={(event) => setTrainSet(event.target.value)}
                   />
                   <Button
@@ -311,31 +333,48 @@ const styles = {
   cell: {
     width: 64,
     height: 64,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
-  cellValue: { fontSize: 18, fontWeight: 'bold' },
+  cellValue: { fontSize: 18, fontWeight: "bold" },
   turnIndicator: {
     fontSize: 21,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 16,
   },
   aiIndicator: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginTop: 16,
   },
   thinking: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginRight: 16,
-    color: '#fbc531',
+    color: "#fbc531",
   },
   startGame: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 32,
   },
+  trainingContainer: {
+    position: "absolute",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  robotIcon: {
+    width: 200,
+    height: 240,
+    alignSelf: "center",
+  },
+  trainSet: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginTop: 16,
+    alignSelf: "center",
+    color: "#FFFFFF",
+  }
 };
 
 export default App;
