@@ -1,5 +1,7 @@
 A simple Tic Tac Toe game with AI (Neural Network implemented)
 
+[Demo](https://ai-xo.surge.sh)
+
 #### Technologies used
 
 - [React] (https://reactjs.org)
